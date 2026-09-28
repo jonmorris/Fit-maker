@@ -74,6 +74,27 @@ Details:
 
 The plan logic is in `src/engine/plan.ts`. It is included in backups (schema v2; v1 backups still import).
 
+## Adding items from text
+
+**Settings → Add items from text** takes a pasted JSON item list and adds those items to the closet. The list can be written by hand or by Claude from your screenshots, order emails or descriptions. It shows a preview before adding anything.
+
+```json
+{ "fitMakerItems": 1, "items": [
+  { "name": "Dark wash jeans", "category": "Casual", "type": "Jeans", "color": "#2c3e5c",
+    "size": "34 x 32", "fabric": "Denim", "formality": ["casual", "business casual"],
+    "warmth": 2, "rainOk": false, "brand": "Levi's", "notes": "511 slim" }
+] }
+```
+
+Only `name` is required.
+
+- **Type:** `type` (plus `category` if the name is ambiguous) is matched to your plan types by name. The type sets the outfit slot and size format.
+- **Size:** written naturally ("32x30", "US 10.5", "15.5/34", "40R").
+- **Color:** a hex value; the color family is derived from it.
+- **Duplicates:** items with the same name and color as something already in the closet are skipped unless you opt in.
+
+Parsing lives in `src/engine/itemImport.ts`.
+
 ## Sizes
 
 Each item stores its size in the format that fits it (`src/engine/sizes.ts`):
