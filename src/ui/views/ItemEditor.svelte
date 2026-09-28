@@ -1,15 +1,18 @@
 <script lang="ts">
   import { colorFamily } from '../../engine/color';
+  import { SIZE_KINDS, SIZE_KIND_LABEL, defaultSize, sizeKindFor, type ItemSize, type SizeKind } from '../../engine/sizes';
   import {
     CATEGORIES, FORMALITIES, PATTERNS, STATUSES,
     type Category, type ColorTag, type Formality, type Item, type ItemAttributes, type Status,
   } from '../../engine/types';
   import { db, newId } from '../../db/db';
   import { deleteItem, deletePhoto, savePhoto, saveItem } from '../../db/items';
+  import { settingsStore } from '../../db/settings';
   import { compressPhoto } from '../../services/photo';
   import ColorField from '../components/ColorField.svelte';
   import Eyedropper from '../components/Eyedropper.svelte';
   import Icon from '../components/Icon.svelte';
+  import SizeInput from '../components/SizeInput.svelte';
   import {
     CATEGORY_DEFAULTS, CATEGORY_LABEL, FABRICS, FORMALITY_LABEL, PATTERN_LABEL, STATUS_LABEL, SUBCATEGORIES,
     WARMTH_LABEL, familyLabel,
@@ -34,6 +37,7 @@
       formality: [...CATEGORY_DEFAULTS.top.formality],
       warmth: CATEGORY_DEFAULTS.top.warmth,
       rainOk: false,
+      size: undefined,
       fitNotes: '',
       status: 'active',
     };
@@ -58,6 +62,27 @@
   let saved = false;
   let saving = $state(false);
 
+  // Size: new items get your profile size for the item's format until you pick one yourself.
+  let sizeTouched = $state(false);
+  let kindOverride = $state<SizeKind | null>(null);
+  let profile = $derived($settingsStore?.sizeProfile);
+  let autoKind = $derived(sizeKindFor(draft.category, draft.subcategory));
+  let sizeKind = $derived(kindOverride ?? (sizeTouched && draft.size ? draft.size.kind : autoKind));
+
+  $effect(() => {
+    if (isNew && !sizeTouched) draft.size = defaultSize(draft.category, draft.subcategory, profile);
+  });
+
+  function setSize(v: ItemSize | undefined) {
+    draft.size = v;
+    sizeTouched = true;
+  }
+
+  function setSizeKind(k: SizeKind) {
+    kindOverride = k === autoKind ? null : k;
+    setSize(k === 'one-size' ? { kind: k, value: 'One size' } : profile?.[k] ? { ...profile[k]! } : undefined);
+  }
+
   let cameraInput = $state<HTMLInputElement>();
   let libraryInput = $state<HTMLInputElement>();
 
@@ -74,6 +99,8 @@
       draft = { ...blankDraft(), ...attrs };
       photoId = pid;
       colorTouched = true;
+      sizeTouched = !!item.size;
+      if (item.size && item.size.kind !== sizeKindFor(item.category, item.subcategory)) kindOverride = item.size.kind;
       if (pid) photoBlob = (await db.photos.get(pid))?.blob;
       loaded = true;
     })();
@@ -164,6 +191,8 @@
       updatedAt: now,
     };
     if (!item.secondaryColor) delete item.secondaryColor;
+    if (!item.size && sizeKind === 'one-size') item.size = { kind: 'one-size', value: 'One size' };
+    if (!item.size) delete item.size;
     await saveItem(item, original?.photoId);
     saved = true;
     saving = false;
@@ -178,6 +207,8 @@
       photoBlob = undefined;
       suggestions = [];
       colorTouched = false;
+      sizeTouched = false;
+      kindOverride = null;
       pickTarget = 'primary';
       window.scrollTo(0, 0);
     } else {
@@ -293,6 +324,21 @@
         {#each SUBCATEGORIES[draft.category] as s (s)}<option value={s}></option>{/each}
       </datalist>
     </label>
+
+    <div class="field">
+      <div class="label-row">
+        <span class="label">Size</span>
+        <select class="kind" aria-label="Size format" value={sizeKind} onchange={(e) => setSizeKind(e.currentTarget.value as SizeKind)}>
+          {#each SIZE_KINDS as k (k)}<option value={k}>{SIZE_KIND_LABEL[k]}</option>{/each}
+        </select>
+      </div>
+      {#key sizeKind}
+        <SizeInput kind={sizeKind} bind:value={() => draft.size, setSize} defaultSystem={profile?.shoe?.system} />
+      {/key}
+      {#if isNew && !sizeTouched && !draft.size && sizeKind !== 'one-size'}
+        <p class="muted tip-small">Set your usual sizes in <a href="#/settings">Settings → My sizes</a> to pre-fill this.</p>
+      {/if}
+    </div>
 
     <label class="field">
       <span class="label">Name</span>
@@ -495,6 +541,30 @@
     background: var(--text);
     border-color: var(--text);
     color: var(--bg);
+  }
+
+  .label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+  }
+  .kind {
+    max-width: 60%;
+    border: 0;
+    background: none;
+    color: var(--accent);
+    font-size: 16px; /* under 16px, iOS zooms in when the select is tapped */
+    font-weight: 600;
+    text-align: right;
+    cursor: pointer;
+  }
+  .tip-small {
+    margin: 0;
+    font-size: var(--text-xs);
+  }
+  .tip-small a {
+    color: var(--accent);
   }
 
   .range {

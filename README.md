@@ -54,6 +54,23 @@ All logic lives in `src/engine/` and is unit tested.
 
 The forecast is cached in IndexedDB and by the service worker, so Today still works offline. The cached forecast includes your location, so it is never included in backups.
 
+## Sizes
+
+Each item stores its size in the format that fits it (`src/engine/sizes.ts`):
+
+| Format | Used for | Example |
+|---|---|---|
+| Letter | tops, layers, most outerwear, hats | M |
+| Neck / sleeve | dress shirts | 15.5 / 34 |
+| Jacket | blazers, sport coats, suits | 40R |
+| Waist × inseam | chinos, jeans, trousers | 32 × 32 |
+| Waist | shorts, skirts | W32 |
+| Shoe | shoes, in US men / US women / UK / EU | US 10.5 |
+| Belt | belts | 34 |
+| One size | scarves, bags, watches, ties | One size |
+
+The format is picked from the category and type, and you can override it per item. **Settings → My sizes** holds your usual size for each format and pre-fills new items. Shorts borrow the waist from your pants size. You can search the closet by size.
+
 ## Data model
 
 See `src/engine/types.ts`. Notes:

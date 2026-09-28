@@ -1,5 +1,7 @@
 // Shared domain types. Pure data — no DOM, no Dexie.
 
+import type { ItemSize } from './sizes';
+
 export const CATEGORIES = ['top', 'bottom', 'outerwear', 'shoes', 'layer', 'accessory'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
@@ -37,6 +39,7 @@ export interface ItemAttributes {
   formality: Formality[];
   warmth: 1 | 2 | 3 | 4 | 5;
   rainOk: boolean;
+  size?: ItemSize;
   fitNotes: string;
 }
 

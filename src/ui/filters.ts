@@ -1,3 +1,4 @@
+import { formatSize } from '../engine/sizes';
 import { CATEGORIES, type Category, type ColorFamily, type Formality, type Item, type Status } from '../engine/types';
 
 export interface ClosetFilters {
@@ -33,7 +34,7 @@ export function filterItems(items: Item[], f: ClosetFilters): Item[] {
     .filter((it) => f.status === 'all' || it.status === f.status)
     .filter(
       (it) =>
-        !q || [it.name, it.subcategory, it.fabric, it.primaryColor.family].some((s) => s.toLowerCase().includes(q)),
+        !q || [it.name, it.subcategory, it.fabric, it.primaryColor.family, formatSize(it.size)].some((s) => s.toLowerCase().includes(q)),
     )
     .sort((a, b) => categoryOrder.get(a.category)! - categoryOrder.get(b.category)! || b.updatedAt - a.updatedAt);
 }
