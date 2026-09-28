@@ -1,4 +1,5 @@
 import { liveQuery, type Observable } from 'dexie';
+import type { SizeProfile } from '../engine/sizes';
 import type { Formality } from '../engine/types';
 import { db } from './db';
 
@@ -7,6 +8,8 @@ export interface Settings {
   theme: 'system' | 'light' | 'dark';
   lastBackupAt: number | null;
   dressCode: Formality;
+  /** Your usual size per format; pre-fills new items. */
+  sizeProfile: SizeProfile;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -14,6 +17,7 @@ export const DEFAULT_SETTINGS: Settings = {
   theme: 'system',
   lastBackupAt: null,
   dressCode: 'business-casual',
+  sizeProfile: {},
 };
 
 /** Keys never written to backups: the future AI API key, and the cached forecast (it holds your location). */

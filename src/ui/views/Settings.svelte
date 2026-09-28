@@ -3,6 +3,25 @@
   import { allItems } from '../../db/items';
   import { setSetting, settingsStore } from '../../db/settings';
   import { isIos, isStandalone, saveFile } from '../../services/files';
+  import type { ItemSize, SizeKind } from '../../engine/sizes';
+  import SizeInput from '../components/SizeInput.svelte';
+
+  // The formats worth a default. Shorts borrow the waist from pants; scarves etc. are one size.
+  const PROFILE_ROWS: { kind: SizeKind; label: string }[] = [
+    { kind: 'letter', label: 'Tops, sweaters & jackets' },
+    { kind: 'dress-shirt', label: 'Dress shirts' },
+    { kind: 'jacket', label: 'Blazers & suits' },
+    { kind: 'waist-inseam', label: 'Pants & jeans' },
+    { kind: 'shoe', label: 'Shoes' },
+    { kind: 'belt', label: 'Belts' },
+  ];
+
+  function setProfileSize(kind: SizeKind, size: ItemSize | undefined) {
+    const next = { ...($settingsStore?.sizeProfile ?? {}) };
+    if (size) next[kind] = size;
+    else delete next[kind];
+    setSetting('sizeProfile', next);
+  }
 
   let busy = $state('');
   let message = $state('');
@@ -83,6 +102,23 @@
   {/if}
 
   <section class="card">
+    <h2>My sizes</h2>
+    <p class="muted">Your usual sizes. New items are pre-filled with these; you can still change each item.</p>
+    <div class="sizes">
+      {#each PROFILE_ROWS as row (row.kind)}
+        <div class="size-row">
+          <span class="size-label">{row.label}</span>
+          <SizeInput
+            kind={row.kind}
+            label={row.label}
+            bind:value={() => $settingsStore?.sizeProfile?.[row.kind], (v) => setProfileSize(row.kind, v)}
+          />
+        </div>
+      {/each}
+    </div>
+  </section>
+
+  <section class="card">
     <h2>Preferences</h2>
     <div class="field-row">
       <span>Temperature</span>
@@ -160,6 +196,18 @@
   p {
     margin: 0 0 var(--space-3);
     font-size: var(--text-sm);
+  }
+  .sizes {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .size-row {
+    display: grid;
+    gap: var(--space-2);
+  }
+  .size-label {
+    font-size: var(--text-sm);
+    font-weight: 600;
   }
   .field-row {
     display: flex;
