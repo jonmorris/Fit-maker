@@ -25,6 +25,8 @@
     border-radius: var(--radius-sm);
     overflow: hidden;
     background: var(--swatch);
+    /* Keeps black/white color-only swatches visible against the card in either theme. */
+    box-shadow: inset 0 0 0 1px rgb(128 128 128 / 0.3);
   }
   img {
     width: 100%;

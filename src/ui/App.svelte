@@ -6,6 +6,7 @@
   import ItemEditor from './views/ItemEditor.svelte';
   import Placeholder from './views/Placeholder.svelte';
   import Settings from './views/Settings.svelte';
+  import Today from './views/Today.svelte';
 
   $effect(() => {
     const theme = $settingsStore?.theme ?? 'system';
@@ -22,10 +23,7 @@
       <ItemEditor id={router.route.id} />
     {/key}
   {:else if router.route.name === 'today'}
-    <Placeholder title="Today" phase={2}>
-      Outfit suggestions for today's weather and your dress code. Lock a piece, shuffle, save favorites, and log
-      what you wore.
-    </Placeholder>
+    <Today />
   {:else if router.route.name === 'insights'}
     <Placeholder title="Insights" phase={3}>
       Redundant clusters, clash-prone pieces, gaps ranked by outfits unlocked, capsule slots, and the
