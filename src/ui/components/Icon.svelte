@@ -13,19 +13,24 @@
     search: 'M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14ZM20 20l-4-4',
     drop: 'M12 3s6 6.3 6 11a6 6 0 0 1-12 0c0-4.7 6-11 6-11Z',
     check: 'M5 12.5l4.5 4.5L19 7.5',
+    lock: 'M6 11h12v9H6ZM8.5 11V8a3.5 3.5 0 0 1 7 0v3',
+    star: 'M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.3-4.1 5.9-.9Z',
+    shuffle: 'M3 7h3.5c2 0 3.2 1 4.3 2.7l2.4 4.6c1.1 1.7 2.3 2.7 4.3 2.7H21M3 17h3.5c1.3 0 2.2-.4 3-1.2M13.5 8.2c.8-.8 1.7-1.2 3-1.2H21M18 4l3 3-3 3M18 14l3 3-3 3',
+    refresh: 'M20 11a8 8 0 0 0-14.3-4.9L4 8M4 4v4h4M4 13a8 8 0 0 0 14.3 4.9L20 16M20 20v-4h-4',
+    trash: 'M5 7h14M10 7V4h4v3M7 7l1 13h8l1-13',
   } as const;
   export type IconName = keyof typeof PATHS;
 </script>
 
 <script lang="ts">
-  let { name, size = 24 }: { name: IconName; size?: number } = $props();
+  let { name, size = 24, filled = false }: { name: IconName; size?: number; filled?: boolean } = $props();
 </script>
 
 <svg
   width={size}
   height={size}
   viewBox="0 0 24 24"
-  fill="none"
+  fill={filled ? 'currentColor' : 'none'}
   stroke="currentColor"
   stroke-width="1.8"
   stroke-linecap="round"

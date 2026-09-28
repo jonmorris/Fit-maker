@@ -35,6 +35,18 @@ export default defineConfig({
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,webmanifest}'],
         navigateFallback: 'index.html',
+        runtimeCaching: [
+          {
+            // Forecasts: always try the network, fall back to the last response offline.
+            urlPattern: ({ url }) => url.origin === 'https://api.open-meteo.com',
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'open-meteo',
+              networkTimeoutSeconds: 6,
+              expiration: { maxEntries: 4, maxAgeSeconds: 2 * 24 * 60 * 60 },
+            },
+          },
+        ],
       },
     }),
   ],

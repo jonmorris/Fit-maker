@@ -1,20 +1,23 @@
 import { liveQuery, type Observable } from 'dexie';
+import type { Formality } from '../engine/types';
 import { db } from './db';
 
 export interface Settings {
   units: 'F' | 'C';
   theme: 'system' | 'light' | 'dark';
   lastBackupAt: number | null;
+  dressCode: Formality;
 }
 
 export const DEFAULT_SETTINGS: Settings = {
   units: 'F',
   theme: 'system',
   lastBackupAt: null,
+  dressCode: 'business-casual',
 };
 
-/** Keys never written to backups (e.g. the future AI API key). */
-export const PRIVATE_SETTING_KEYS = new Set(['anthropicApiKey']);
+/** Keys never written to backups: the future AI API key, and the cached forecast (it holds your location). */
+export const PRIVATE_SETTING_KEYS = new Set(['anthropicApiKey', 'weatherCache']);
 
 export async function getSettings(): Promise<Settings> {
   const rows = await db.settings.toArray();
