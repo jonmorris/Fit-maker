@@ -1,4 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
+import type { ItemType, PlanCategory } from '../engine/plan';
 import type { Item, Outfit, WearLog } from '../engine/types';
 
 /** Full-size compressed photo. Kept apart from items so list queries never load blobs. */
@@ -27,6 +28,8 @@ export class WardrobeDB extends Dexie {
   outfits!: EntityTable<Outfit, 'id'>;
   wearLog!: EntityTable<WearLog, 'id'>;
   settings!: EntityTable<Setting, 'key'>;
+  planCategories!: EntityTable<PlanCategory, 'id'>;
+  itemTypes!: EntityTable<ItemType, 'id'>;
 
   constructor(name = 'fit-maker') {
     super(name);
@@ -39,6 +42,11 @@ export class WardrobeDB extends Dexie {
       outfits: 'id, favorite, createdAt',
       wearLog: 'id, date',
       settings: 'key',
+    });
+    // v2: wardrobe plan (your categories and item types with target counts).
+    this.version(2).stores({
+      planCategories: 'id, order',
+      itemTypes: 'id, categoryId, order',
     });
   }
 }

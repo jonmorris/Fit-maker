@@ -2,6 +2,7 @@
   import { FAMILY_SWATCH } from '../../engine/color';
   import { CATEGORIES, COLOR_FAMILIES, FORMALITIES, STATUSES, type ColorFamily } from '../../engine/types';
   import { allItems } from '../../db/items';
+  import { itemTypes, planCategories } from '../../db/plan';
   import Icon from '../components/Icon.svelte';
   import Thumb from '../components/Thumb.svelte';
   import { closet } from '../closetState.svelte';
@@ -11,14 +12,19 @@
   const f = closet.filters;
 
   let items = $derived($allItems ?? []);
-  let visible = $derived(filterItems(items, f));
-  // Chip counts reflect the status filter only, so chips don't vanish as you narrow down.
-  let base = $derived(filterItems(items, { ...DEFAULT_FILTERS, status: f.status }));
+  let cats = $derived($planCategories ?? []);
+  let typeCategory = $derived(new Map(($itemTypes ?? []).map((t) => [t.id, t.categoryId])));
+  let visible = $derived(filterItems(items, f, typeCategory));
+  // Chip counts reflect the status and plan-category filters only, so chips don't vanish as you narrow down.
+  let base = $derived(
+    filterItems(items, { ...DEFAULT_FILTERS, status: f.status, planCategory: f.planCategory }, typeCategory),
+  );
   let categoryCounts = $derived(countBy(base, (i) => i.category));
   let familyCounts = $derived(countBy(base, (i) => i.primaryColor.family));
   let presentFamilies = $derived(COLOR_FAMILIES.filter((c) => familyCounts.has(c) || f.families.includes(c)));
   let filtered = $derived(
-    f.category !== 'all' || f.families.length > 0 || f.formality !== 'all' || f.query.trim() !== '',
+    f.planCategory !== 'all' ||
+      f.category !== 'all' || f.families.length > 0 || f.formality !== 'all' || f.query.trim() !== '',
   );
 
   function toggleFamily(c: ColorFamily) {
@@ -72,6 +78,13 @@
   {/if}
 
   <div class="row">
+    {#if cats.length}
+      <select class="input compact" bind:value={f.planCategory} aria-label="Plan category">
+        <option value="all">All categories</option>
+        {#each cats as c (c.id)}<option value={c.id}>{c.name}</option>{/each}
+        <option value="none">No type</option>
+      </select>
+    {/if}
     <select class="input compact" bind:value={f.formality} aria-label="Formality">
       <option value="all">Any formality</option>
       {#each FORMALITIES as v (v)}<option value={v}>{FORMALITY_LABEL[v]}</option>{/each}

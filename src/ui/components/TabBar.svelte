@@ -5,7 +5,7 @@
   const tabs: { route: string; label: string; icon: IconName }[] = [
     { route: 'closet', label: 'Closet', icon: 'closet' },
     { route: 'today', label: 'Today', icon: 'today' },
-    { route: 'insights', label: 'Insights', icon: 'insights' },
+    { route: 'plan', label: 'Plan', icon: 'insights' },
     { route: 'settings', label: 'Settings', icon: 'settings' },
   ];
 </script>

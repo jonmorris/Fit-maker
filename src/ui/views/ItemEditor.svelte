@@ -1,12 +1,14 @@
 <script lang="ts">
   import { colorFamily } from '../../engine/color';
-  import { SIZE_KINDS, SIZE_KIND_LABEL, defaultSize, sizeKindFor, type ItemSize, type SizeKind } from '../../engine/sizes';
+  import { SIZE_KINDS, SIZE_KIND_LABEL, defaultSizeForKind, sizeKindFor, type ItemSize, type SizeKind } from '../../engine/sizes';
+  import { progressFor } from '../../engine/plan';
   import {
     CATEGORIES, FORMALITIES, PATTERNS, STATUSES,
     type Category, type ColorTag, type Formality, type Item, type ItemAttributes, type Status,
   } from '../../engine/types';
   import { db, newId } from '../../db/db';
-  import { deleteItem, deletePhoto, savePhoto, saveItem } from '../../db/items';
+  import { allItems, deleteItem, deletePhoto, savePhoto, saveItem } from '../../db/items';
+  import { itemTypes, planCategories } from '../../db/plan';
   import { settingsStore } from '../../db/settings';
   import { compressPhoto } from '../../services/photo';
   import ColorField from '../components/ColorField.svelte';
@@ -19,7 +21,7 @@
   } from '../labels';
   import { navigate } from '../router.svelte';
 
-  let { id }: { id: string | 'new' } = $props();
+  let { id, typeId: initialTypeId }: { id: string | 'new'; typeId?: string } = $props();
 
   // The parent remounts this component per id ({#key}), so reading it once is intended.
   // svelte-ignore state_referenced_locally
@@ -38,6 +40,7 @@
       warmth: CATEGORY_DEFAULTS.top.warmth,
       rainOk: false,
       size: undefined,
+      typeId: undefined,
       fitNotes: '',
       status: 'active',
     };
@@ -66,11 +69,17 @@
   let sizeTouched = $state(false);
   let kindOverride = $state<SizeKind | null>(null);
   let profile = $derived($settingsStore?.sizeProfile);
-  let autoKind = $derived(sizeKindFor(draft.category, draft.subcategory));
+  // Wardrobe plan types (count-only ones like socks aren't catalogued item by item).
+  let cats = $derived($planCategories ?? []);
+  let types = $derived(($itemTypes ?? []).filter((t) => !t.countOnly || t.id === draft.typeId));
+  let planType = $derived(types.find((t) => t.id === draft.typeId));
+  let planProgressNow = $derived(planType ? progressFor(planType, $allItems ?? []) : null);
+
+  let autoKind = $derived(planType?.sizeKind ?? sizeKindFor(draft.category, draft.subcategory));
   let sizeKind = $derived(kindOverride ?? (sizeTouched && draft.size ? draft.size.kind : autoKind));
 
   $effect(() => {
-    if (isNew && !sizeTouched) draft.size = defaultSize(draft.category, draft.subcategory, profile);
+    if (isNew && !sizeTouched) draft.size = defaultSizeForKind(autoKind, profile);
   });
 
   function setSize(v: ItemSize | undefined) {
@@ -160,12 +169,28 @@
   function setCategory(c: Category) {
     if (c === draft.category) return;
     draft.category = c;
-    draft.subcategory = '';
+    draft.subcategory = planType ? planType.name : '';
     if (isNew) {
       draft.warmth = CATEGORY_DEFAULTS[c].warmth;
       draft.formality = [...CATEGORY_DEFAULTS[c].formality];
     }
   }
+
+  function selectType(tid: string) {
+    const t = types.find((x) => x.id === tid);
+    draft.typeId = t?.id;
+    if (!t) return;
+    setCategory(t.slot);
+    draft.subcategory = t.name;
+  }
+
+  // Adding an item from a plan type (#/item/new?type=…): preselect it once types load.
+  let typePreselected = false;
+  $effect(() => {
+    if (!isNew || typePreselected || !initialTypeId || !$itemTypes) return;
+    typePreselected = true;
+    selectType(initialTypeId);
+  });
 
   function toggleFormality(f: Formality) {
     const has = draft.formality.includes(f);
@@ -193,13 +218,20 @@
     if (!item.secondaryColor) delete item.secondaryColor;
     if (!item.size && sizeKind === 'one-size') item.size = { kind: 'one-size', value: 'One size' };
     if (!item.size) delete item.size;
+    if (!item.typeId) delete item.typeId;
     await saveItem(item, original?.photoId);
     saved = true;
     saving = false;
 
     if (addAnother) {
       // Keep category/formality for fast batch entry of similar things.
-      const keep = { category: draft.category, formality: draft.formality, warmth: draft.warmth };
+      const keep = {
+        category: draft.category,
+        subcategory: planType ? draft.subcategory : '',
+        typeId: draft.typeId,
+        formality: draft.formality,
+        warmth: draft.warmth,
+      };
       createdPhotoIds.clear();
       saved = false;
       draft = { ...blankDraft(), ...keep };
@@ -308,8 +340,34 @@
     </section>
 
     <!-- Category -->
+    {#if types.length}
+      <label class="field">
+        <span class="label">Type</span>
+        <select class="input" value={draft.typeId ?? ''} onchange={(e) => selectType(e.currentTarget.value)}>
+          <option value="">No type</option>
+          {#each cats as c (c.id)}
+            {@const ofCat = types.filter((t) => t.categoryId === c.id)}
+            {#if ofCat.length}
+              <optgroup label={c.name}>
+                {#each ofCat as t (t.id)}<option value={t.id}>{t.name}</option>{/each}
+              </optgroup>
+            {/if}
+          {/each}
+        </select>
+        {#if planType && planProgressNow}
+          <span class="muted tip-small">
+            {cats.find((c) => c.id === planType.categoryId)?.name} · you have {planProgressNow.owned} of
+            {planProgressNow.min === planProgressNow.max ? planProgressNow.max : `${planProgressNow.min}–${planProgressNow.max}`}
+            {#if planType.shopping}· Need new: {planType.shopping}{/if}
+          </span>
+        {:else}
+          <span class="muted tip-small">Pick where this counts in your <a href="#/plan">plan</a>.</span>
+        {/if}
+      </label>
+    {/if}
+
     <fieldset class="field">
-      <legend class="label">Category</legend>
+      <legend class="label">{types.length ? 'Outfit slot' : 'Category'}</legend>
       <div class="seg wrap">
         {#each CATEGORIES as c (c)}
           <button type="button" aria-pressed={draft.category === c} onclick={() => setCategory(c)}>{CATEGORY_LABEL[c]}</button>
@@ -317,13 +375,15 @@
       </div>
     </fieldset>
 
-    <label class="field">
-      <span class="label">Type</span>
-      <input class="input" list="subcats" placeholder={SUBCATEGORIES[draft.category][0]} bind:value={draft.subcategory} />
-      <datalist id="subcats">
-        {#each SUBCATEGORIES[draft.category] as s (s)}<option value={s}></option>{/each}
-      </datalist>
-    </label>
+    {#if !planType}
+      <label class="field">
+        <span class="label">{types.length ? 'Kind' : 'Type'}</span>
+        <input class="input" list="subcats" placeholder={SUBCATEGORIES[draft.category][0]} bind:value={draft.subcategory} />
+        <datalist id="subcats">
+          {#each SUBCATEGORIES[draft.category] as s (s)}<option value={s}></option>{/each}
+        </datalist>
+      </label>
+    {/if}
 
     <div class="field">
       <div class="label-row">
@@ -589,38 +649,6 @@
   .t-sub {
     font-size: var(--text-sm);
   }
-  input[role='switch'] {
-    appearance: none;
-    flex: none;
-    position: relative;
-    width: 51px;
-    height: 31px;
-    margin: 0;
-    border-radius: 999px;
-    background: var(--surface-2);
-    box-shadow: inset 0 0 0 1px var(--border);
-    transition: background 0.2s;
-    cursor: pointer;
-  }
-  input[role='switch']::after {
-    content: '';
-    position: absolute;
-    top: 2px;
-    left: 2px;
-    width: 27px;
-    height: 27px;
-    border-radius: 50%;
-    background: #fff;
-    box-shadow: 0 1px 3px rgb(0 0 0 / 0.3);
-    transition: translate 0.2s;
-  }
-  input[role='switch']:checked {
-    background: var(--accent);
-  }
-  input[role='switch']:checked::after {
-    translate: 20px 0;
-  }
-
   .actions {
     display: grid;
     gap: var(--space-2);
