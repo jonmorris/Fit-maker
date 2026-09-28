@@ -4,6 +4,7 @@
   import { needsFor } from '../../engine/weather';
   import { allItems } from '../../db/items';
   import { setSetting, settingsStore } from '../../db/settings';
+  import { itemTypes, planCategories } from '../../db/plan';
   import { deleteWear, favoriteOutfits, logWear, recentWear, toggleFavorite } from '../../db/wear';
   import { loadTodayWeather, localDate, type TodayWeather } from '../../services/weather';
   import Icon from '../components/Icon.svelte';
@@ -26,6 +27,13 @@
   refreshWeather();
 
   let items = $derived($allItems ?? []);
+  // Items whose plan category is switched off for outfits (golf, workout…) aren't suggested.
+  let outfitItems = $derived.by(() => {
+    const off = new Set(($planCategories ?? []).filter((c) => !c.inOutfits).map((c) => c.id));
+    if (!off.size) return items;
+    const offTypes = new Set(($itemTypes ?? []).filter((t) => off.has(t.categoryId)).map((t) => t.id));
+    return items.filter((i) => !i.typeId || !offTypes.has(i.typeId));
+  });
   let byId = $derived(new Map(items.map((i) => [i.id, i])));
   let wear = $derived($recentWear ?? []);
   let favs = $derived($favoriteOutfits ?? []);
@@ -40,7 +48,7 @@
     if (!$allItems || loadingWeather) return null;
     const recent = wear.filter((w) => daysBetween(w.date, date) < 14);
     return suggestOutfits({
-      items,
+      items: outfitItems,
       dressCode,
       needs,
       locked: today.locked,

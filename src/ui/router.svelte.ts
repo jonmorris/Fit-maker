@@ -3,20 +3,30 @@
 
 export type Route =
   | { name: 'closet' }
-  | { name: 'item'; id: string | 'new' }
+  | { name: 'item'; id: string | 'new'; typeId?: string }
   | { name: 'today' }
-  | { name: 'insights' }
+  | { name: 'plan' }
+  | { name: 'type'; id: string }
   | { name: 'settings' };
 
 export function parseHash(hash: string): Route {
-  const parts = hash.replace(/^#\/?/, '').split('/').filter(Boolean);
+  const [path, query = ''] = hash.replace(/^#\/?/, '').split('?');
+  const parts = path.split('/').filter(Boolean);
+  const params = new URLSearchParams(query);
   switch (parts[0]) {
     case 'item':
-      return { name: 'item', id: parts[1] ? decodeURIComponent(parts[1]) : 'new' };
+      return {
+        name: 'item',
+        id: parts[1] ? decodeURIComponent(parts[1]) : 'new',
+        typeId: params.get('type') ?? undefined,
+      };
     case 'today':
       return { name: 'today' };
+    case 'plan':
     case 'insights':
-      return { name: 'insights' };
+      return { name: 'plan' };
+    case 'type':
+      return parts[1] ? { name: 'type', id: decodeURIComponent(parts[1]) } : { name: 'plan' };
     case 'settings':
       return { name: 'settings' };
     default:

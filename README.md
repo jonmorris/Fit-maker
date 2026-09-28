@@ -9,7 +9,8 @@ A personal wardrobe PWA: catalog your clothes, get outfit suggestions for today'
 | 0 | Skeleton: PWA manifest and service worker, offline, iOS home-screen, dark mode, Pages deploy | ✅ |
 | 1 | Inventory: photo capture and compression, eyedropper, color families, filters, edit, JSON backup | ✅ |
 | 2 | Rules-based outfit builder: color harmony, formality, Open-Meteo weather, lock-a-piece, favorites, wear log | ✅ |
-| 3 | Analysis: redundancy, clash risk, gaps, capsule slots, before-you-buy, orphans | – |
+| 3a | Wardrobe plan: your categories and item types with target counts, spreadsheet import | ✅ |
+| 3b | Analysis: redundancy, clash risk, gaps, before-you-buy, orphans | – |
 | 4 | AI tagging with the Claude API (your own key, stored locally) | – |
 
 ## Stack and why
@@ -53,6 +54,25 @@ All logic lives in `src/engine/` and is unit tested.
   - The dress code is relaxed one level only when a required slot would otherwise be empty, and the app shows a notice when that happens.
 
 The forecast is cached in IndexedDB and by the service worker, so Today still works offline. The cached forecast includes your location, so it is never included in backups.
+
+## Wardrobe plan
+
+The **Plan** tab holds your own categories (Basics, Casual, Dress, Golf…) and item types, each with a **target** count (or a min–max range), notes and a "need new" note. It compares them with your closet:
+
+- 🔴 **Need**: fewer than the target or minimum. This is your shopping list.
+- 🟢 **On target**
+- 🟠 **Over**: more than the target or maximum.
+
+Details:
+
+- **Adding items.** In the item editor, pick a **Type** (grouped by category). That sets the outfit slot, size format and your default size. "Add …" on a type pre-selects it.
+- **What counts.** Items marked *donate* don't count as owned.
+- **Count-only types.** Types like socks or underwear just take a number, adjusted with −/+ on the Plan screen, instead of an item per pair.
+- **Hidden from outfits.** A category can be left out of daily outfit suggestions (e.g. Golf, Workout).
+- **Outfit slot.** Each type maps to one, guessed from its name (Golf polo → top, Rain shell → outerwear, Underwear → other). Change it under *Outfit slot & size format*.
+- **Import.** Paste a table from Sheets, Numbers or Excel. Columns are matched by header (*Category*, *Item*, *#*, *Description*, *Need New*), two-letter codes like `Ba`/`Ca`/`Dr` expand to names, and re-importing updates existing types instead of duplicating them.
+
+The plan logic is in `src/engine/plan.ts`. It is included in backups (schema v2; v1 backups still import).
 
 ## Sizes
 

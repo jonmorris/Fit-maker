@@ -87,6 +87,10 @@ export function sizeKindFor(category: Category, subcategory = ''): SizeKind {
       if (/belt/i.test(subcategory)) return 'belt';
       if (ONE_SIZE.test(subcategory)) return 'one-size';
       return 'letter';
+    case 'other':
+      if (/sock/i.test(subcategory)) return 'shoe';
+      if (/short|pant|swim/i.test(subcategory)) return 'waist';
+      return 'letter';
   }
 }
 
@@ -153,7 +157,10 @@ export function formatSize(size: ItemSize | undefined): string {
 
 /** Default size for a new item: your profile size for the matching format, if set. */
 export function defaultSize(category: Category, subcategory: string, profile: SizeProfile | undefined): ItemSize | undefined {
-  const kind = sizeKindFor(category, subcategory);
+  return defaultSizeForKind(sizeKindFor(category, subcategory), profile);
+}
+
+export function defaultSizeForKind(kind: SizeKind, profile: SizeProfile | undefined): ItemSize | undefined {
   if (kind === 'one-size') return { kind, value: 'One size' };
   const fromProfile = profile?.[kind];
   if (fromProfile) return { ...fromProfile };

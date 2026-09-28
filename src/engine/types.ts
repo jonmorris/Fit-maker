@@ -2,7 +2,8 @@
 
 import type { ItemSize } from './sizes';
 
-export const CATEGORIES = ['top', 'bottom', 'outerwear', 'shoes', 'layer', 'accessory'] as const;
+/** Outfit slots. 'other' covers things never suggested in outfits (underwear, swimwear, base layers…). */
+export const CATEGORIES = ['top', 'bottom', 'outerwear', 'shoes', 'layer', 'accessory', 'other'] as const;
 export type Category = (typeof CATEGORIES)[number];
 
 export const FORMALITIES = ['casual', 'business-casual', 'dressy'] as const;
@@ -40,6 +41,8 @@ export interface ItemAttributes {
   warmth: 1 | 2 | 3 | 4 | 5;
   rainOk: boolean;
   size?: ItemSize;
+  /** The wardrobe-plan type this item counts toward. */
+  typeId?: string;
   fitNotes: string;
 }
 

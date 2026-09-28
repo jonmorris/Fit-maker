@@ -23,6 +23,8 @@ const item = (id: string, name: string): Item => ({
 });
 
 const sample = (): BackupData => ({
+  planCategories: [{ id: 'c1', name: 'Casual', order: 0, inOutfits: true }],
+  itemTypes: [],
   items: [item('a', 'Navy chinos')],
   outfits: [],
   wearLog: [{ id: 'w1', date: '2026-09-28', itemIds: ['a'] }],
@@ -55,6 +57,13 @@ describe('serializeBackup / parseBackup', () => {
     const file = await serializeBackup(sample());
     expect(JSON.stringify(file)).not.toContain('sk-secret');
     expect(file.settings.map((s) => s.key)).toEqual(['units']);
+  });
+
+  it('round-trips the wardrobe plan and still reads v1 files without one', async () => {
+    const file = await serializeBackup(sample());
+    expect(parseBackup(JSON.stringify(file)).planCategories).toEqual(sample().planCategories);
+    const v1 = { ...file, schemaVersion: 1, planCategories: undefined, itemTypes: undefined };
+    expect(parseBackup(JSON.stringify(v1)).planCategories).toEqual([]);
   });
 
   it('rejects files from other apps and newer schema versions', () => {

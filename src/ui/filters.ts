@@ -7,6 +7,8 @@ export interface ClosetFilters {
   formality: Formality | 'all';
   status: Status | 'all';
   query: string;
+  /** Wardrobe-plan category id, 'none' for items without a type, or 'all'. */
+  planCategory: string;
 }
 
 export const DEFAULT_FILTERS: ClosetFilters = {
@@ -15,14 +17,17 @@ export const DEFAULT_FILTERS: ClosetFilters = {
   formality: 'all',
   status: 'active',
   query: '',
+  planCategory: 'all',
 };
 
 const categoryOrder = new Map(CATEGORIES.map((c, i) => [c, i]));
 
 /** Filters, then sorts by category (top → accessory) and most recently edited. */
-export function filterItems(items: Item[], f: ClosetFilters): Item[] {
+export function filterItems(items: Item[], f: ClosetFilters, typeCategory?: Map<string, string>): Item[] {
   const q = f.query.trim().toLowerCase();
+  const planCat = (it: Item) => (it.typeId && typeCategory?.get(it.typeId)) || 'none';
   return items
+    .filter((it) => f.planCategory === 'all' || planCat(it) === f.planCategory)
     .filter((it) => f.category === 'all' || it.category === f.category)
     .filter(
       (it) =>

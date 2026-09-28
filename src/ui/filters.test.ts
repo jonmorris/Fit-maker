@@ -46,6 +46,13 @@ describe('filterItems', () => {
     expect(filterItems(all, { ...DEFAULT_FILTERS, query: 'oxford' }).map((i) => i.name)).toEqual(['White oxford']);
   });
 
+  it('filters by wardrobe-plan category via the item type', () => {
+    const typed = { ...shirt, typeId: 'golf-polo' };
+    const map = new Map([['golf-polo', 'golf']]);
+    expect(filterItems([typed, chinos], { ...DEFAULT_FILTERS, planCategory: 'golf' }, map).map((i) => i.name)).toEqual(['White oxford']);
+    expect(filterItems([typed, chinos], { ...DEFAULT_FILTERS, planCategory: 'none' }, map).map((i) => i.name)).toEqual(['Navy chinos']);
+  });
+
   it('can show all statuses', () => {
     expect(filterItems(all, { ...DEFAULT_FILTERS, status: 'all' })).toHaveLength(4);
   });

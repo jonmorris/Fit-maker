@@ -4,7 +4,8 @@
   import { router } from './router.svelte';
   import Closet from './views/Closet.svelte';
   import ItemEditor from './views/ItemEditor.svelte';
-  import Placeholder from './views/Placeholder.svelte';
+  import Plan from './views/Plan.svelte';
+  import TypeEditor from './views/TypeEditor.svelte';
   import Settings from './views/Settings.svelte';
   import Today from './views/Today.svelte';
 
@@ -19,22 +20,23 @@
   {#if router.route.name === 'closet'}
     <Closet />
   {:else if router.route.name === 'item'}
-    {#key router.route.id}
-      <ItemEditor id={router.route.id} />
+    {#key router.route.id + (router.route.typeId ?? '')}
+      <ItemEditor id={router.route.id} typeId={router.route.typeId} />
     {/key}
   {:else if router.route.name === 'today'}
     <Today />
-  {:else if router.route.name === 'insights'}
-    <Placeholder title="Insights" phase={3}>
-      Redundant clusters, clash-prone pieces, gaps ranked by outfits unlocked, capsule slots, and the
-      before-you-buy check.
-    </Placeholder>
+  {:else if router.route.name === 'plan'}
+    <Plan />
+  {:else if router.route.name === 'type'}
+    {#key router.route.id}
+      <TypeEditor id={router.route.id} />
+    {/key}
   {:else if router.route.name === 'settings'}
     <Settings />
   {/if}
 </main>
 
-{#if router.route.name !== 'item'}
+{#if router.route.name !== 'item' && router.route.name !== 'type'}
   <TabBar />
 {/if}
 

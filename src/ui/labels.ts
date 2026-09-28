@@ -7,6 +7,7 @@ export const CATEGORY_LABEL: Record<Category, string> = {
   shoes: 'Shoes',
   layer: 'Layer',
   accessory: 'Accessory',
+  other: 'Other',
 };
 
 export const FORMALITY_LABEL: Record<Formality, string> = {
@@ -41,6 +42,7 @@ export const SUBCATEGORIES: Record<Category, string[]> = {
   shoes: ['Sneakers', 'Loafers', 'Derbies', 'Boots', 'Chelsea boots', 'Sandals'],
   layer: ['Crewneck sweater', 'Cardigan', 'Quarter-zip', 'Hoodie', 'Vest', 'Sweatshirt'],
   accessory: ['Belt', 'Scarf', 'Hat', 'Bag', 'Watch', 'Tie'],
+  other: ['Underwear', 'Socks', 'Undershirt', 'Swimsuit', 'Base layer', 'Workout gear'],
 };
 
 export const FABRICS = [
@@ -56,4 +58,5 @@ export const CATEGORY_DEFAULTS: Record<Category, { warmth: 1 | 2 | 3 | 4 | 5; fo
   shoes: { warmth: 2, formality: ['business-casual'] },
   layer: { warmth: 3, formality: ['casual', 'business-casual'] },
   accessory: { warmth: 1, formality: ['casual', 'business-casual'] },
+  other: { warmth: 1, formality: ['casual'] },
 };
