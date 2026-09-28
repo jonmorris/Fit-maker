@@ -1,0 +1,75 @@
+/* Design tokens. Light is the default; dark via system preference or a manual override. */
+:root {
+  color-scheme: light;
+  --bg: #f6f3ee;
+  --surface: #ffffff;
+  --surface-2: #efeae2;
+  --border: #e0d9cd;
+  --text: #1f1d1a;
+  --text-muted: #6f685d;
+  --accent: #b5652d;
+  --accent-contrast: #ffffff;
+  --accent-soft: #f3e2d4;
+  --danger: #b3262e;
+  --focus: #2f5fbf;
+
+  --radius-sm: 8px;
+  --radius: 14px;
+  --radius-lg: 20px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.06), 0 4px 16px rgb(0 0 0 / 0.06);
+
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  --font: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Inter', 'Segoe UI', Roboto, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 14px;
+  --text-md: 16px;
+  --text-lg: 20px;
+  --text-xl: 28px;
+
+  --tap: 44px; /* Apple's minimum touch target */
+  --tabbar-h: 56px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* The dark palette appears twice: once for the manual override, once for the
+   system preference (plain CSS can't share a block between the two selectors). */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #161513;
+  --surface: #1f1d1a;
+  --surface-2: #2a2723;
+  --border: #37332d;
+  --text: #f3efe7;
+  --text-muted: #a39c90;
+  --accent: #e0925a;
+  --accent-contrast: #1f1d1a;
+  --accent-soft: #3d2c1f;
+  --danger: #ef6b6b;
+  --focus: #8fb0ff;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --bg: #161513;
+    --surface: #1f1d1a;
+    --surface-2: #2a2723;
+    --border: #37332d;
+    --text: #f3efe7;
+    --text-muted: #a39c90;
+    --accent: #e0925a;
+    --accent-contrast: #1f1d1a;
+    --accent-soft: #3d2c1f;
+    --danger: #ef6b6b;
+    --focus: #8fb0ff;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 4px 16px rgb(0 0 0 / 0.3);
+  }
+}
