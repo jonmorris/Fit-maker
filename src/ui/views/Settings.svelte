@@ -4,6 +4,7 @@
   import { setSetting, settingsStore } from '../../db/settings';
   import { isIos, isStandalone, saveFile } from '../../services/files';
   import type { ItemSize, SizeKind } from '../../engine/sizes';
+  import ItemsFromText from '../components/ItemsFromText.svelte';
   import SizeInput from '../components/SizeInput.svelte';
 
   // The formats worth a default. Shorts borrow the waist from pants; scarves etc. are one size.
@@ -100,6 +101,8 @@
       </p>
     </section>
   {/if}
+
+  <ItemsFromText />
 
   <section class="card">
     <h2>My sizes</h2>
