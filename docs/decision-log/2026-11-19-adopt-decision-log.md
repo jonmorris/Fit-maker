@@ -1,0 +1,1 @@
+| 2026-11-19 | Process | Decisions are recorded as one-line entry files folded into a dated decision log on main, alongside a running modular case study | docs/DECISION-LOG.md → How to keep this file; docs/CASE-STUDY.md → How this file works |

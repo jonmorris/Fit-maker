@@ -10,7 +10,8 @@
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
-    "icons": "pwa-assets-generator"
+    "icons": "pwa-assets-generator",
+    "decision-log": "node scripts/decision-log.ts"
   },
   "dependencies": {
     "dexie": "^4.4.6"
